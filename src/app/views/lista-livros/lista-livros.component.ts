@@ -1,7 +1,7 @@
-import { ImageLinks, Item } from './../../models/interfaces';
-import { Component, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { Livro } from 'src/app/models/interfaces';
+import { FormControl } from '@angular/forms';
+import { Item } from './../../models/interfaces';
+import { Component } from '@angular/core';
+import { map, switchMap, tap } from 'rxjs';
 import { LivroVolumeInfo } from 'src/app/models/livroVolume';
 import { LivroService } from 'src/app/service/livro.service';
 
@@ -10,32 +10,24 @@ import { LivroService } from 'src/app/service/livro.service';
   templateUrl: './lista-livros.component.html',
   styleUrls: ['./lista-livros.component.css']
 })
-export class ListaLivrosComponent implements OnDestroy{
-  campoBusca: string = ''
-  subscription: Subscription
-  livro: Livro
-  listaLivros: Livro[];
+export class ListaLivrosComponent{
+  campoBusca = new FormControl()
+
+
+  livrosEncontrados$ = this.campoBusca.valueChanges
+    .pipe(
+      tap(() => console.log('Antes de chamar a API')),
+      switchMap((valorDigitado) => this.service.buscar(valorDigitado)),
+      tap(() => console.log('Após chamar a Api')),
+      map(items => this.livroResultadoParaLivros(items))
+    )
 
   constructor(private service: LivroService) { }
-
-  buscarLivros() {
-    this.subscription = this.service.buscar(this.campoBusca).subscribe(
-      {
-        next: items => {this.listaLivros = this.livroResultadoParaLivros(items)},
-        error: erro => console.error(erro),
-        complete: () => console.log('Chamada finalizada!')
-      }
-    )
-  }
 
   livroResultadoParaLivros(items: Item[]): LivroVolumeInfo[] {
     return items.map(item => {
       return new LivroVolumeInfo(item)
     })
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe()
   }
 
 }
