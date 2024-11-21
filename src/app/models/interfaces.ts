@@ -40,7 +40,7 @@ export interface Item {
   volumeInfo: VolumeInfo
 }
 
-export interface LivroResultado {
+export interface LivrosResultado {
   items: Item[],
   totalItems: number
 }
